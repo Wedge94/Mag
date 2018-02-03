@@ -1,8 +1,11 @@
 package com.packages;
 
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -16,8 +19,8 @@ public class Storage {
 	private Multimap<TypeOfPackage, Package> hashByType = ArrayListMultimap.create();
 	
 	private List<FixedSizeStack<Package>> peekList; 
+	protected final Logger log = Logger.getLogger(getClass().getName());
 	
-	private int temp = 0;
 	
 	
 	
@@ -40,45 +43,6 @@ public class Storage {
 		this.storagePreviousMoves = new ArrayList<PreviousMove>();
 		this.outsideStorage = new ArrayList<Package>();
 	}
-	public void addPackageNew(TypeOfPackage type, int priority , String description) 
-	{
-		if(priority >= 5 && priority <= 1)
-		{
-			return;
-		}
-		for(int i = 0; i<peekList.size(); i++) 
-		{
-			if(!checkIfCanAddPackage(peekList.get(i)))
-			{
-				continue;
-			}
-			if(peekList.get(i).size() != 0) 
-			{
-				if(peekList.get(i).peek().getPRIORTY() <= priority)
-				{
-					peekList.get(i).push(createPackage(type,priority,description,
-							peekList.get(i).getPOSITION_X(),
-							peekList.get(i).getPOSITION_Y(),
-							peekList.get(i).getMAX_SIZE() - peekList.get(i).size()));
-					temp++;
-					System.out.println("Package was added");
-					return;
-				}
-			}
-			else
-			{
-				peekList.get(i).push(createPackage(type,priority,description,
-						peekList.get(i).getPOSITION_X(),
-						peekList.get(i).getPOSITION_Y(),
-						peekList.get(i).getMAX_SIZE() - peekList.get(i).size()));
-				temp++;
-				System.out.println("Package was added");
-				return;
-			}
-		}
-		System.out.println("Package wasn't added");
-		return;
-	}
 	
 	private boolean checkIfCanAddPackage(FixedSizeStack s)
 	{
@@ -92,27 +56,20 @@ public class Storage {
 		}
 	}
 	
-	public int getTemp()
-	{
-		return temp;
-	}
 	
-	public void addPackage(TypeOfPackage type, int priority , String description) 
+	public void addPackage(TypeOfPackage type, int priority , String description) throws IllegalArgumentException
 	{
 		if(priority >= 5 && priority <= 1)
 		{
-			System.out.println("Priorty must be a number between 1 to 5");
-			return;
+			throw new IllegalArgumentException("Priorty must be a number between 1 to 5");
 		}
 		if(addToStack(type,priority,description))
 		{
-			System.out.println("Package was added");
-			temp++;
+			log.log(Level.INFO, "Package was added");
 		}
 		else
 		{
-			System.out.println("Package wasn't added");
-			
+			log.log(Level.INFO, "Package wasn't added, stack is full");
 		}
 	}
 	private Package createPackage(TypeOfPackage type, int priority,String description, int positionX,int positionY,int positionZ) {
@@ -150,6 +107,7 @@ public class Storage {
 		return false;
 	}
 	
+	
 	private boolean movePackageFromPreviousPosition(Package packageToMove, int previousX,int previousY) 
 	{
 		for(int indexX=0; indexX<SIZE_X; indexX++)
@@ -161,29 +119,40 @@ public class Storage {
 				}
 				if(checkIfStackIsNotFull(indexX, indexY))
 				{
-					if(this.storage[indexX][indexY].size() == 0)
+					if(checkIfICanPush(packageToMove, indexX, indexY))
 					{
-						this.storage[indexX][indexY].push(packageToMove);
-						packageToMove.setPosition(indexX, indexY, 
-								this.storage[indexX][indexY].getMAX_SIZE() - this.storage[indexX][indexY].size());
-						storagePreviousMoves.add(packageToMove.getPreviousMove());
 						return true;
-					}
-					else 
-					{
-						if(this.storage[indexX][indexY].peek().getPRIORTY() <= packageToMove.getPRIORTY()) 
-						{
-							this.storage[indexX][indexY].push(packageToMove);
-							packageToMove.setPosition(indexX, indexY, 
-									this.storage[indexX][indexY].getMAX_SIZE() - this.storage[indexX][indexY].size());
-							storagePreviousMoves.add(packageToMove.getPreviousMove());
-							return true;
-						}
 					}
 				}
 			}
 		}
 		return false;
+	}
+	
+	private boolean checkIfICanPush(Package packageToMove, int indexX, int indexY)
+	{
+		if(this.storage[indexX][indexY].size() == 0)
+		{
+			pushPackage(packageToMove, indexX, indexY);
+			return true;
+		}
+		else 
+		{
+			if(this.storage[indexX][indexY].peek().getPRIORTY() <= packageToMove.getPRIORTY()) 
+			{
+				pushPackage(packageToMove, indexX, indexY);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private void pushPackage(Package packageToMove, int indexX, int indexY)
+	{
+		this.storage[indexX][indexY].push(packageToMove);
+		packageToMove.setPosition(indexX, indexY, 
+				this.storage[indexX][indexY].getMAX_SIZE() - this.storage[indexX][indexY].size());
+		storagePreviousMoves.add(packageToMove.getPreviousMove());
 	}
 	
 	private boolean checkIfStackIsNotFull(int indexX, int indexY)
@@ -216,6 +185,13 @@ public class Storage {
 		}
 		else
 		{
+			return PeekFromStack(packageToGet);
+		}
+	}
+	
+	private Package PeekFromStack(Package packageToGet)
+	{
+		try {
 			while (packageToGet !=this.storage[packageToGet.getPositionX()][packageToGet.getPositionY()].peek())
 			{
 				Package tempPackage = this.storage[packageToGet.getPositionX()][packageToGet.getPositionY()].pop();
@@ -230,8 +206,12 @@ public class Storage {
 			tryToAddPackageFromOutSideStorage();
 			return packageToGet;
 		}
+		catch(EmptyStackException e)
+		{
+			log.log(Level.INFO, "Package was taken out");
+		}
+		return packageToGet;
 	}
-	
 	
 	private void tryToAddPackageFromOutSideStorage() {
 		for(int i=0; i<outsideStorage.size(); i++) {
@@ -251,8 +231,8 @@ public class Storage {
 	}
 	public void getHistoryOfPreviousMoves() {
 		for(int i=0; i<this.storagePreviousMoves.size(); i++) {
-			System.out.println("Move number: "+(i+1));
-			System.out.println(this.storagePreviousMoves.get(i).toString());
+			log.log(Level.INFO, "Move number: "+(i+1));
+			log.log(Level.INFO, this.storagePreviousMoves.get(i).toString());
 		}
 	}
 }

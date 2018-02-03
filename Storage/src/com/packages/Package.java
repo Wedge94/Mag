@@ -3,6 +3,8 @@ package com.packages;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Package {
 	
@@ -15,6 +17,7 @@ public class Package {
 	private static int lastID=0;
 	private final int ID;
 	private final int PRIORTY;
+	protected final Logger log = Logger.getLogger(getClass().getName());
 	
 	public Package(TypeOfPackage type, int PRIORTY , String description,  int positionX, int positionY, int positionZ) {
 		this.positionX = positionX;
@@ -34,11 +37,11 @@ public class Package {
 		lastID++;
 	}
 
-	String getDescription() {
+	public String getDescription() {
 		return description;
 	}
 
-	TypeOfPackage getType() {
+	public TypeOfPackage getType() {
 		return type;
 	}
 
@@ -50,9 +53,9 @@ public class Package {
 		return addedDate;
 	}
 	
-	public void ShowDateOfAllMoves() {
+	public void showDateOfAllMoves() {
 		for(int i=0; i<previous.size(); i++) {
-			System.out.println(previous.get(i).toString());
+			log.log(Level.INFO, previous.get(i).toString());
 		}
 	}
 
@@ -76,13 +79,15 @@ public class Package {
 		return positionZ;
 	}
 	
-	void addPreviousMove() {
+	public void addPreviousMove() {
 		this.previous.add(new PreviousMove(positionX,positionY,positionZ,ID));
 	}
+	
 	public PreviousMove getPreviousMove() {
 		return previous.get(previous.size()-1);
 	}
-	void setPosition(int positionX, int positionY, int positionZ) {
+	
+	public void setPosition(int positionX, int positionY, int positionZ) {
 		this.positionY = positionY;
 		this.positionX = positionX;
 		this.positionZ = positionZ;

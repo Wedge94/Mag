@@ -2,17 +2,23 @@ package com.storage;
 
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.packages.*;
 import com.packages.Package;
 
+
+
 public class Main {
 
+	
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Storage cube = new Storage(10,10,10);
-		long startTime = System.currentTimeMillis();
 		int random1 = 0;
+		final Logger log = Logger.getAnonymousLogger();
 		for(int i=0; i<1000; i++) {
 			random1++;
 			if(random1 == 1)
@@ -41,33 +47,17 @@ public class Main {
 				random1 =0;
 			}
 		}
-		long finishTime = System.currentTimeMillis();
-		//int x = cube.getTemp();
-		/*Package tempPackage = cube.getPackageByNumber(378);
-		//System.out.println(tempPackage.getID());
-		//System.out.println(tempPackage.getDate());
-		tempPackage.ShowDateOfAllMoves();
-		for(int i=0; i<cube.outsideStorage.size(); i++) {
-			System.out.println(cube.outsideStorage.get(i).getID());
-		}*/
-		System.out.println("That took: " + (finishTime - startTime) + " ms");
-		/*for(int i=1; i<=x; i ++) {
-			System.out.println("<-------------------------------------->"); 
-			cube.getPackageByNumber(i).ShowDateOfAllMoves();
-			System.out.println("<-------------------------------------->"); 
-		}
-		//cube.getAllPackageByType(TypeOfPackage.toys);
-		//cube.getHistoryOfPreviousMoves();
-		/*List<Package> list = cube.getAllPackageByType(TypeOfPackage.toys);
-		for (int i = 0; i < list.size(); i++)
+
+		List<Package> listOfToys = cube.getAllPackageByType(TypeOfPackage.toys);
+		for(int i = 0; i < listOfToys.size(); i++)
 		{
-			System.out.println("<-------------------------------------->");  
-			System.out.println(list.get(i).getID()); 
-			System.out.println(list.get(i).getCountOfMoves());
-			System.out.println(list.get(i).getPreviousMove());
-			list.get(i).ShowDateOfAllMoves(); 
-			System.out.println("<-------------------------------------->"); 
-		}*/
+			log.log(Level.INFO, "---");
+			log.log(Level.INFO, Integer.toString(listOfToys.get(i).getID()));
+			log.log(Level.INFO, listOfToys.get(i).getDate().toString());
+			log.log(Level.INFO, "---");
+		}
+		cube.getPackageByNumber(90).showDateOfAllMoves();
+		cube.getPackageByNumber(89).showDateOfAllMoves();
 	}
 
 }
